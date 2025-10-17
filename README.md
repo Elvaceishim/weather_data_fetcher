@@ -1,4 +1,4 @@
-![Cover](https://raw.githubusercontent.com/Elvaceishim/weather_data_fetcher/main/assets/cover.png)
+![Cover](assets/cover.png)
 
 # Weather Data Fetcher — Automated Data Pipeline
 
@@ -25,7 +25,7 @@ Visual summaries generated automatically with `make viz`:
 
 | Temperature Trend          | Rainfall Pattern             |
 | -------------------------- | ---------------------------- |
-| ![Temps](https://raw.githubusercontent.com/Elvaceishim/weather_data_fetcher/main/assets/temps.png) | ![Precip](https://raw.githubusercontent.com/Elvaceishim/weather_data_fetcher/main/assets/precip.png) |
+| ![Temps](assets/temps.png) | ![Precip](assets/precip.png) |
 
 **Run:**
 
