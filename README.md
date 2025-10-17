@@ -23,18 +23,19 @@ This project demonstrates a clean, reproducible workflow for data automation —
 
 ---
 
-## 📊 Charts
+## Charts
 
 Visual summaries generated automatically with `make viz`:
 
 | Temperature Trend           | Rainfall Pattern              |
 | --------------------------- | ----------------------------- |
-| ![Temps](results/temps.png) | ![Precip](results/precip.png) |
+| ![Temps](assets/temps.png) | ![Precip](assets/precip.png) |
 
 **Run:**
 
-````bash
+```bash
 make viz
+```
 
 ---
 
@@ -42,14 +43,13 @@ make viz
 Clone and run:
 ```bash
 make all
-````
+```
 
-## 🧰 CLI
+## CLI
 
 Install (editable):
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e .
-
 ```
