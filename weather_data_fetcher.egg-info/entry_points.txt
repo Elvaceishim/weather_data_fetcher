@@ -1,0 +1,2 @@
+[console_scripts]
+weather-cli = weather_cli.cli:main

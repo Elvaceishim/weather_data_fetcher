@@ -41,3 +41,13 @@ setup:
 viz: all plot
 	@echo "📊 Charts generated."
 
+.PHONY: cli
+cli:
+	@python3 scripts/weather_cli.py --city Lagos --lat 6.5244 --lon 3.3792
+
+.PHONY: install uninstall
+install:
+	@. .venv/bin/activate && pip install -e .
+
+uninstall:
+	@. .venv/bin/activate && pip uninstall -y weather-data-fetcher

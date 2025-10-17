@@ -1,0 +1,26 @@
+[project]
+name = "weather-data-fetcher"
+version = "0.1.0"
+description = "Fetch, process, and visualize daily weather from Open-Meteo."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Elvis Anselm" }]
+license = "MIT"
+dependencies = [
+  "requests",
+  "pandas",
+  "matplotlib",
+  "python-dotenv",
+  "pillow"
+]
+
+[tool.setuptools.packages.find]
+include = ["weather_cli*"]
+exclude = ["data*", "logs*", "results*", "assets*"]
+
+[project.scripts]
+weather-cli = "weather_cli.cli:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
