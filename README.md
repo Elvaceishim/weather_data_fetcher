@@ -1,4 +1,4 @@
-![Cover](assets/cover.png)
+![Cover](assets/cover.png?raw=1)
 
 # Weather Data Fetcher — Automated Data Pipeline
 
@@ -25,7 +25,7 @@ Visual summaries generated automatically with `make viz`:
 
 | Temperature Trend          | Rainfall Pattern             |
 | -------------------------- | ---------------------------- |
-| ![Temps](assets/temps.png) | ![Precip](assets/precip.png) |
+| ![Temps](assets/temps.png?raw=1) | ![Precip](assets/precip.png?raw=1) |
 
 **Run:**
 
