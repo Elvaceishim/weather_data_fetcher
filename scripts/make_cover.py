@@ -5,6 +5,8 @@ RESULTS = "results"
 IMG1 = os.path.join(RESULTS, "temps.png")
 IMG2 = os.path.join(RESULTS, "precip.png")
 OUT  = os.path.join(RESULTS, "cover.png")
+ASSETS_DIR = "assets"
+ASSET_OUT = os.path.join(ASSETS_DIR, "cover.png")
 
 def fail(msg):
     print(f"❌ {msg}")
@@ -59,4 +61,7 @@ draw.text((tx, ty), title, fill="black", font=font)
 
 os.makedirs(RESULTS, exist_ok=True)
 canvas.save(OUT, optimize=True)
+if ASSETS_DIR:
+    os.makedirs(ASSETS_DIR, exist_ok=True)
+    canvas.save(ASSET_OUT, optimize=True)
 print(f"✅ Created {OUT}")

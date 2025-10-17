@@ -1,4 +1,4 @@
-![Cover](results/cover.png)
+![Cover](assets/cover.png)
 
 # Weather Data Fetcher — Automated Data Pipeline
 
