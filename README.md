@@ -1,5 +1,3 @@
-![Cover](assets/cover.png?raw=1)
-
 # Weather Data Fetcher — Automated Data Pipeline
 
 Fetch daily Lagos (or any city) weather data using **Open-Meteo API**, process it with **Python**, and automate the full workflow via **Bash + Makefile**.
@@ -20,20 +18,6 @@ This project demonstrates a clean, reproducible workflow for data automation —
 ---
 
 ## Charts
-
-Visual summaries generated automatically with `make viz`:
-
-| Temperature Trend          | Rainfall Pattern             |
-| -------------------------- | ---------------------------- |
-| ![Temps](assets/temps.png?raw=1) | ![Precip](assets/precip.png?raw=1) |
-
-**Run:**
-
-```bash
-make viz
-```
-
----
 
 ## Run Locally
 
