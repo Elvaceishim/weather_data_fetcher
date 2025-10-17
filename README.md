@@ -1,5 +1,9 @@
 ![Cover](assets/cover.png)
 
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Status](https://img.shields.io/badge/Release-v0.1.0-orange)
+
 # Weather Data Fetcher — Automated Data Pipeline
 
 Fetch daily Lagos (or any city) weather data using **Open-Meteo API**, process it with **Python**, and automate the full workflow via **Bash + Makefile**.
@@ -39,3 +43,13 @@ Clone and run:
 ```bash
 make all
 ````
+
+## 🧰 CLI
+
+Install (editable):
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e .
+
+```
