@@ -1,0 +1,39 @@
+{
+  "horizon_hours": 6,
+  "features": [
+    "temp_c",
+    "humidity",
+    "cloudcover",
+    "pressure",
+    "wind_speed",
+    "precip_mm",
+    "rain_mm"
+  ],
+  "thresholds": {
+    "default": 0.5,
+    "high_recall": 0.35,
+    "high_precision": 0.65
+  },
+  "metrics": {
+    "default": {
+      "precision": 0.8203125,
+      "recall": 0.6818181818181818,
+      "f1": 0.7446808510638298
+    },
+    "high_recall": {
+      "precision": 0.6951871657754011,
+      "recall": 0.8441558441558441,
+      "f1": 0.7624633431085044
+    },
+    "high_precision": {
+      "precision": 0.9367088607594937,
+      "recall": 0.4805194805194805,
+      "f1": 0.6351931330472103
+    },
+    "baseline_persistence": {
+      "precision": 0.6217948717948718,
+      "recall": 0.6298701298701299,
+      "f1": 0.6258064516129033
+    }
+  }
+}

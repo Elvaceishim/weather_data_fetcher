@@ -23,3 +23,6 @@ plt.legend()
 plt.tight_layout()
 plt.savefig("results/intro_regression.png")
 print("✅ Saved results/intro_regression.png")
+
+print("slope:", model.coef_)
+print("intercept:", model.intercept_)

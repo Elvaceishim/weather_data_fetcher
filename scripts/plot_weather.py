@@ -69,6 +69,5 @@ def main():
     print(f"✅ Wrote {TEMPS_RESULTS} / {PRECIP_RESULTS}")
     print(f"✅ Updated assets at {TEMPS_ASSET} / {PRECIP_ASSET}")
 
-
 if __name__ == "__main__":
     main()

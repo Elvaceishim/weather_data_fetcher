@@ -51,3 +51,39 @@ install:
 
 uninstall:
 	@. .venv/bin/activate && pip uninstall -y weather-data-fetcher
+
+.PHONY: rain
+rain:
+	@python3 scripts/train_classify_rain.py
+
+.PHONY: hourly rain6
+hourly:
+	@PAST_DAYS=14 bash scripts/fetch_weather.sh && python3 scripts/export_hourly.py
+
+rain6:
+	@python3 scripts/train_classify_rain_hourly.py
+
+.PHONY: rain-train rain-predict
+rain-train:
+	@python3 scripts/train_rain_dual_thresholds.py
+
+rain-predict:
+	@python3 scripts/predict_rain.py
+
+.PHONY: rain-now
+rain-now:
+	@python3 scripts/rain_cli.py --mode recall
+
+.PHONY: eval-plots
+eval-plots:
+	@python3 scripts/plot_pr_roc.py
+
+.PHONY: rain-train rain-now hourly
+hourly:
+	@PAST_DAYS=14 bash scripts/fetch_weather.sh && python3 scripts/export_hourly.py
+
+rain-train:
+	@python3 scripts/train_rain_dual_thresholds.py
+
+rain-now:
+	@python3 -c "import sys,subprocess; subprocess.run(['weather-cli','rain','--mode','recall'])"
