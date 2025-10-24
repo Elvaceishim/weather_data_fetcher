@@ -6,13 +6,13 @@ Author: Elvis Anselm
 License-Expression: MIT
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
+License-File: LICENSE
 Requires-Dist: requests
 Requires-Dist: pandas
 Requires-Dist: matplotlib
 Requires-Dist: python-dotenv
 Requires-Dist: pillow
-
-![Cover](assets/cover.png)
+Dynamic: license-file
 
 # Weather Data Fetcher — Automated Data Pipeline
 
@@ -33,23 +33,44 @@ This project demonstrates a clean, reproducible workflow for data automation —
 
 ---
 
-## 📊 Charts
+## Charts
 
-Visual summaries generated automatically with `make viz`:
+## Rain Warning (next 6h)
 
-| Temperature Trend           | Rainfall Pattern              |
-| --------------------------- | ----------------------------- |
-| ![Temps](results/temps.png) | ![Precip](results/precip.png) |
+| Mode           | Threshold | Precision | Recall |
+| -------------- | --------- | --------- | ------ |
+| Default        | 0.50      | 0.71      | 0.70   |
+| High-Recall    | 0.35      | 0.68      | 0.84   |
+| High-Precision | 0.65      | 0.79      | 0.50   |
 
-**Run:**
+Generate data and forecasts:
 
-````bash
-make viz
+```bash
+make hourly
+make rain-train
+make rain-now
+```
 
----
+```bash
+python scripts/plot_pr_roc.py   # refresh PR/ROC charts
+```
+
+![PR Curve](results/pr_curve.png)
+![ROC Curve](results/roc_curve.png)
 
 ## Run Locally
+
 Clone and run:
+
 ```bash
 make all
-````
+```
+
+## CLI
+
+Install (editable):
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e .
+```

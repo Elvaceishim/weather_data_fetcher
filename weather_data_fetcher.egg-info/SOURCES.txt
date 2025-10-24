@@ -1,3 +1,4 @@
+LICENSE
 README.md
 pyproject.toml
 weather_cli/__init__.py
