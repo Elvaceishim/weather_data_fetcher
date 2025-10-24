@@ -18,6 +18,11 @@ This project demonstrates a clean, reproducible workflow for data automation —
 ---
 
 ## Charts
+Visual summaries generated with `make viz`:
+
+| Temperature trend | Rainfall pattern |
+| ----------------- | ---------------- |
+| ![Temps](assets/temps.png) | ![Precip](assets/precip.png) |
 
 ## 🌧️ Rain Warning (next 6 hours)
 
@@ -67,8 +72,41 @@ Training sweeps precision–recall trade-offs and stores two operating points:
 | High recall    | Catch >80 % of rain events     |
 | High precision | Warn only when ≥90 % confident |
 
-![PR Curve](results/pr_curve.png)
-![ROC Curve](results/roc_curve.png)
+![PR Curve](assets/pr_curve.png)
+![ROC Curve](assets/roc_curve.png)
+
+### Model Interpretability
+
+The model learned:
+
+- **Coefficients (standardized):** which signals push toward rain vs no-rain  
+  ```bash
+  python scripts/coef_rain.py  # writes top weights
+  ```
+  Output → `results/coef_top15.txt`
+
+- **Permutation importance:** which features matter most to F1 on the test set  
+  ```bash
+  python scripts/feature_importance_rain.py
+  ```
+  Output → `results/feature_importance.png`
+  
+
+It engineers both raw signals and short-term deltas/rolling means. Positive coefficients push toward “RAIN”, negative toward “No rain”.
+
+### 🔍 What the model actually learned (top signals)
+
+| Feature       | Meaning                                                                 |
+| ------------- | ----------------------------------------------------------------------- |
+| `precip_mm`   | Existing rainfall strongly predicts more rain (tropical persistence)    |
+| `temp_c`      | Warmer air holds more moisture → higher chance of near-term rain         |
+| `humidity`    | High saturation = cloud condensation is likely                           |
+| `pressure`    | Falling pressure indicates unstable atmosphere / storm formation         |
+| `cloudcover`  | More clouds = conditions building toward rainfall                        |
+| `wind_speed`  | Negative weight — stronger winds can disperse moisture                   |
+
+The classifier isn’t guessing; it’s surfacing familiar meteorological patterns.
+![Feature importance](assets/feature_importance.png)
 
 ## Run Locally
 
