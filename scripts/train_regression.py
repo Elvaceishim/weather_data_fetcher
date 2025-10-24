@@ -5,7 +5,6 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import joblib, os
 
-# Load data
 df = pd.read_csv("results/summary.csv")
 
 # Create lagged feature: today's temp → tomorrow's temp
@@ -46,7 +45,6 @@ print(f"RMSE: {baseline_rmse:.3f}")
 print("")
 print("✅ Better than baseline?" , "YES ✅" if rmse < baseline_rmse else "NO ❌")
 
-# Save model
 os.makedirs("models", exist_ok=True)
 joblib.dump(model, "models/temp_regressor.joblib")
 print("\n💾 Model saved to models/temp_regressor.joblib")

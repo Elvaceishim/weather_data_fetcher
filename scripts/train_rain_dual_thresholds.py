@@ -22,7 +22,7 @@ for i in range(len(prec) - H):
     rain_next[i] = 1 if np.any(prec[i+1:i+1+H] > 0) else 0
 df = df.iloc[:len(prec) - 0].copy()
 df["rain_next6h"] = rain_next[:len(df)]
-# drop tail where label may be undefined
+
 df = df.iloc[:-H].copy()
 
 # ------- Feature engineering -------

@@ -26,7 +26,7 @@ df = pd.DataFrame({
     "precip_mm": H["precipitation"],
     "rain_mm": H["rain"],
 })
-# ensure datetime and sort
+
 df["time"] = pd.to_datetime(df["time"])
 df = df.sort_values("time").reset_index(drop=True)
 df.to_csv("results/hourly.csv", index=False)
