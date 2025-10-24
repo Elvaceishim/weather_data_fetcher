@@ -6,7 +6,6 @@ import pandas as pd
 df = pd.read_csv("results/hourly.csv", parse_dates=["time"])
 row = df.iloc[-1:].copy()
 
-# Rebuild features like in training
 for col in ["temp_c","humidity","cloudcover","pressure","wind_speed","precip_mm","rain_mm"]:
     row[f"d_{col}"] = df[col].diff().iloc[-1]
     row[f"ma3_{col}"] = df[col].rolling(3).mean().iloc[-1]

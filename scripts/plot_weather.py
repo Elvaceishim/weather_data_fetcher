@@ -42,7 +42,6 @@ def main():
 
     ensure_dirs()
 
-    # Temperature line chart
     plt.figure()
     plt.plot(days, tmax, marker="o", label="Max °C")
     plt.plot(days, tmin, marker="o", label="Min °C")

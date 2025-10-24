@@ -13,17 +13,14 @@ from sklearn.metrics import (
 
 df = pd.read_csv("results/hourly.csv", parse_dates=["time"])
 
-H = 6  # look-ahead horizon (hours)
+H = 6 
 precip_next = np.zeros(len(df), dtype=int)
 
-# Use precip_mm (more inclusive than rain_mm)
 prec = df["precip_mm"].values
 
-# For each time t, look at t+1 ... t+H
 for i in range(len(prec) - H):
     precip_next[i] = 1 if np.any(prec[i+1:i+1+H] > 0) else 0
 
-# Cut tail (no full future window)
 df = df.iloc[:len(precip_next) - (0)].copy()
 df["rain_next6h"] = precip_next[:len(df)]
 
@@ -35,7 +32,6 @@ features = [
 X = df[features].values
 y = df["rain_next6h"].values
 
-# Quick sanity check
 print("Class balance (0=no-rain, 1=rain-in-next6h):", np.bincount(y))
 
 X_train, X_test, y_train, y_test = train_test_split(
@@ -76,7 +72,7 @@ p0, r0, f10, _ = precision_recall_fscore_support(
 print("\n🧠 Baseline — always 'no rain'")
 print(f"Precision: {p0:.3f}  Recall: {r0:.3f}  F1: {f10:.3f}")
 
-# Persistence baseline: if it rained in the last H hours, predict rain in next H hours
+# Persistence baseline
 recent_rain = (
     pd.Series(df["precip_mm"])
     .rolling(window=H, min_periods=1)
@@ -107,7 +103,6 @@ pr_precision, rc_precision, f1_precision, _ = precision_recall_fscore_support(
 print(f"\n🎛️ Threshold {thr_recall:.2f} → Precision: {pr_recall:.3f}  Recall: {rc_recall:.3f}  F1: {f1_recall:.3f}")
 print(f"🎛️ Threshold {thr_precision:.2f} → Precision: {pr_precision:.3f}  Recall: {rc_precision:.3f}  F1: {f1_precision:.3f}")
 
-# Save model
 import joblib
 os.makedirs("models", exist_ok=True)
 joblib.dump(clf, "models/rain_classifier_hourly.joblib")
