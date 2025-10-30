@@ -1,0 +1,11 @@
+{
+  "params": {
+    "learning_rate": 0.05,
+    "max_depth": 3,
+    "n_estimators": 500,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "min_child_weight": 3
+  },
+  "mean_f1": 0.5780780663579321
+}
