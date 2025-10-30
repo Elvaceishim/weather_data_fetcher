@@ -1,0 +1,117 @@
+{
+  "model_type": "xgboost+isotonic",
+  "features": [
+    "temp_c",
+    "humidity",
+    "cloudcover",
+    "pressure",
+    "wind_speed",
+    "precip_mm",
+    "rain_mm",
+    "d_temp_c",
+    "d_humidity",
+    "d_cloudcover",
+    "d_pressure",
+    "d_wind_speed",
+    "d_precip_mm",
+    "d_rain_mm",
+    "ma3_temp_c",
+    "ma3_humidity",
+    "ma3_cloudcover",
+    "ma3_pressure",
+    "ma3_wind_speed",
+    "ma3_precip_mm",
+    "ma3_rain_mm",
+    "d3_pressure",
+    "d3_humidity",
+    "d3_cloudcover",
+    "d3_temp_c",
+    "dew_proxy",
+    "d_dew_proxy",
+    "ma3_dew_proxy",
+    "rain_sum_3h",
+    "rain_sum_6h",
+    "rain_sum_12h",
+    "rain_sum_24h",
+    "rain_max_6h",
+    "rain_max_12h",
+    "dry_streak_h",
+    "wet_streak_h",
+    "hour_sin",
+    "hour_cos",
+    "dow_sin",
+    "dow_cos",
+    "hum_x_cloud",
+    "wind_x_cloud",
+    "press_drop_3h"
+  ],
+  "horizon_hours": 12,
+  "event_mm": 1.0,
+  "label_desc": "Rain event if cumulative precip \u2265 1.0 mm in next 12h",
+  "thresholds": {
+    "default": 0.5123772621154785,
+    "high_recall": 0.26928117871284485,
+    "high_precision": 0.6026621460914612
+  },
+  "metrics": {
+    "default": {
+      "threshold": 0.5123772621154785,
+      "precision": 0.5376344086021505,
+      "recall": 0.8438818565400844,
+      "f1": 0.6568144499178982,
+      "auc": 0.7253714914694552,
+      "cm": [
+        [
+          173,
+          172
+        ],
+        [
+          37,
+          200
+        ]
+      ],
+      "pos_rate": 0.6391752577319587
+    },
+    "high_recall": {
+      "threshold": 0.26928117871284485,
+      "precision": 0.4976190476190476,
+      "recall": 0.8818565400843882,
+      "f1": 0.6362252663622526,
+      "auc": 0.7253714914694552,
+      "cm": [
+        [
+          134,
+          211
+        ],
+        [
+          28,
+          209
+        ]
+      ],
+      "pos_rate": 0.7216494845360825
+    },
+    "high_precision": {
+      "threshold": 0.6026621460914612,
+      "precision": 0.6490384615384616,
+      "recall": 0.569620253164557,
+      "f1": 0.6067415730337079,
+      "auc": 0.7253714914694552,
+      "cm": [
+        [
+          272,
+          73
+        ],
+        [
+          102,
+          135
+        ]
+      ],
+      "pos_rate": 0.35738831615120276
+    }
+  },
+  "policy": {
+    "default": "best F1 (balanced, early-warning baseline)",
+    "high_recall": "recall\u22650.88 & precision\u22650.55 & pos_rate\u22640.80",
+    "high_precision": "precision\u22650.80 & recall\u22650.45 (Moderate)"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "features": [
+    "temp_c",
+    "humidity",
+    "cloudcover",
+    "pressure",
+    "wind_speed",
+    "precip_mm",
+    "rain_mm",
+    "d_temp_c",
+    "d_humidity",
+    "d_cloudcover",
+    "d_pressure",
+    "d_wind_speed",
+    "d_precip_mm",
+    "d_rain_mm",
+    "ma3_temp_c",
+    "ma3_humidity",
+    "ma3_cloudcover",
+    "ma3_pressure",
+    "ma3_wind_speed",
+    "ma3_precip_mm",
+    "ma3_rain_mm",
+    "pressure_d3h",
+    "humidity_d3h",
+    "cloudcover_d3h",
+    "dew_proxy",
+    "d_dew_proxy",
+    "ma3_dew_proxy"
+  ],
+  "horizon_hours": 12,
+  "thresholds": {
+    "default": 0.4454699456691742,
+    "high_recall": 0.4454699456691742,
+    "high_precision": 0.8384796977043152
+  },
+  "metrics": {
+    "default": {
+      "threshold": 0.4454699456691742,
+      "precision": 0.8151093439363817,
+      "recall": 0.9403669724770642,
+      "f1": 0.873269435569755,
+      "auc": 0.7489787718475859,
+      "cm": [
+        [
+          44,
+          93
+        ],
+        [
+          26,
+          410
+        ]
+      ],
+      "pos_rate": 0.8778359511343804
+    },
+    "high_recall": {
+      "threshold": 0.4454699456691742,
+      "precision": 0.8151093439363817,
+      "recall": 0.9403669724770642,
+      "f1": 0.873269435569755,
+      "auc": 0.7489787718475859,
+      "cm": [
+        [
+          44,
+          93
+        ],
+        [
+          26,
+          410
+        ]
+      ],
+      "pos_rate": 0.8778359511343804
+    },
+    "high_precision": {
+      "threshold": 0.8384796977043152,
+      "precision": 0.9012345679012346,
+      "recall": 0.5022935779816514,
+      "f1": 0.6450662739322534,
+      "auc": 0.7489787718475859,
+      "cm": [
+        [
+          113,
+          24
+        ],
+        [
+          217,
+          219
+        ]
+      ],
+      "pos_rate": 0.42408376963350786
+    }
+  },
+  "model_type": "xgboost"
+}
