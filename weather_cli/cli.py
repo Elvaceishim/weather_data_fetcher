@@ -72,15 +72,81 @@ def ensure_hourly_data(lat, lon, past_days=14):
 
 def rebuild_features_like_training(df: pd.DataFrame, features_from_meta: list) -> pd.DataFrame:
     """
-    Rebuild the exact feature columns used during training:
-    base + d_ (1h diff) + ma3_ (3h rolling mean).
+    Rebuild EXACT feature columns used during training.
+    Assumes df has hourly columns: time, temp_c, humidity, cloudcover, pressure,
+    wind_speed, precip_mm, rain_mm.
+    Returns a DataFrame with columns ordered as in features_from_meta.
     """
-    base = ["temp_c","humidity","cloudcover","pressure","wind_speed","precip_mm","rain_mm"]
+    required = {"time","temp_c","humidity","cloudcover","pressure","wind_speed","precip_mm","rain_mm"}
+    missing = required - set(df.columns)
+    if missing:
+        raise ValueError(f"Hourly data missing columns: {sorted(missing)}")
 
-    for col in base:
-        df[f"d_{col}"] = df[col].diff()
-        df[f"ma3_{col}"] = df[col].rolling(3).mean()
+    # Base + short-term dynamics
+    base = ["temp_c","humidity","cloudcover","pressure","wind_speed","precip_mm","rain_mm"]
+    for c in base:
+        df[f"d_{c}"]   = df[c].diff()
+        df[f"ma3_{c}"] = df[c].rolling(3).mean()
+
+    # Onset (3h deltas)
+    for c in ["pressure","humidity","cloudcover","temp_c"]:
+        df[f"d3_{c}"] = df[c] - df[c].shift(3)
+
+    # Dewpoint proxy + dynamics
+    df["dew_proxy"]     = df["temp_c"] - (df["humidity"] / 5.0)
+    df["d_dew_proxy"]   = df["dew_proxy"].diff()
+    df["ma3_dew_proxy"] = df["dew_proxy"].rolling(3).mean()
+
+    # Intensity & persistence (past-only)
+    df["rain_sum_3h"]   = df["precip_mm"].rolling(3).sum()
+    df["rain_sum_6h"]   = df["precip_mm"].rolling(6).sum()
+    df["rain_sum_12h"]  = df["precip_mm"].rolling(12).sum()
+    df["rain_sum_24h"]  = df["precip_mm"].rolling(24).sum()
+    df["rain_max_6h"]   = df["precip_mm"].rolling(6).max()
+    df["rain_max_12h"]  = df["precip_mm"].rolling(12).max()
+
+    # Wet/dry streaks (hours)
+    is_raining = (df["precip_mm"] > 0).astype(int)
+    dry = (~(is_raining.astype(bool))).astype(int)
+    df["dry_streak_h"] = (dry.groupby((dry != dry.shift()).cumsum()).cumcount() + 1) * dry
+    df["dry_streak_h"] = df["dry_streak_h"].where(dry == 1, 0)
+
+    wet = is_raining
+    df["wet_streak_h"] = (wet.groupby((wet != wet.shift()).cumsum()).cumcount() + 1) * wet
+    df["wet_streak_h"] = df["wet_streak_h"].where(wet == 1, 0)
+
+    # Cycles (diurnal + weekly + seasonal hour-of-year)
+    df["hour"] = df["time"].dt.hour
+    df["dow"]  = df["time"].dt.dayofweek
+    df["doy"]  = df["time"].dt.dayofyear
+    df["hoy"]  = (df["doy"] - 1) * 24 + df["hour"]
+
+    # sin/cos encodings
+    df["hour_sin"] = np.sin(2*np.pi*df["hour"]/24.0)
+    df["hour_cos"] = np.cos(2*np.pi*df["hour"]/24.0)
+    df["dow_sin"]  = np.sin(2*np.pi*df["dow"]/7.0)
+    df["dow_cos"]  = np.cos(2*np.pi*df["dow"]/7.0)
+    df["hoy_sin"]  = np.sin(2*np.pi*df["hoy"]/(365.25*24))
+    df["hoy_cos"]  = np.cos(2*np.pi*df["hoy"]/(365.25*24))
+
+    # Light interactions (help precision)
+    df["hum_x_cloud"]   = df["humidity"] * df["cloudcover"]
+    df["wind_x_cloud"]  = df["wind_speed"] * df["cloudcover"]
+    df["press_drop_3h"] = -df["d3_pressure"]  # pressure falling → storms
+    df["press_drop_6h"] = df["pressure"].shift(6) - df["pressure"]
+
+    # We need enough history for 24h windows. Warn if tiny.
+    if len(df) < 24:
+        raise ValueError("Not enough hourly rows to build 24h features. Fetch more history (PAST_DAYS≥2).")
+
+    # Align with training (drop rows with NaNs from rolling/diff)
     df = df.dropna().reset_index(drop=True)
+
+    # Final column order: exactly as training meta recorded
+    missing_feats = [c for c in features_from_meta if c not in df.columns]
+    if missing_feats:
+        raise ValueError(f"CLI feature builder missing columns expected by model: {missing_feats}")
+
     return df[features_from_meta]
 
 def cmd_rain(args):
@@ -89,27 +155,35 @@ def cmd_rain(args):
     if not (meta_path.exists() and model_path.exists()):
         raise FileNotFoundError(
             "Rain model files not found. Train them first:\n"
-            "  python scripts/train_rain_dual_thresholds.py"
+            "  python scripts/train_xgb_12h_calibrated.py"
         )
+
+    # Load model + metadata
     meta = json.load(open(meta_path))
     clf = joblib.load(model_path)
 
+    # Ensure hourly.csv exists
     hourly_csv = ensure_hourly_data(args.lat, args.lon, past_days=args.past_days)
     df = pd.read_csv(hourly_csv, parse_dates=["time"])
 
+    # Rebuild features exactly as in training
     feat_df = rebuild_features_like_training(df.copy(), meta["features"])
     X = feat_df.iloc[[-1]].values
     p = float(clf.predict_proba(X)[0, 1])
 
-    thr_map = {
-        "default": meta["thresholds"]["default"],
-        "recall": meta["thresholds"]["high_recall"],
-        "precision": meta["thresholds"]["high_precision"],
-    }
-    thr = float(thr_map[args.mode])
-    decision = "RAIN" if p >= thr else "No rain"
+    # Pick threshold based on mode
+    thresholds = meta["thresholds"]
+    if args.mode == "recall":
+        thr = float(thresholds.get("high_recall", thresholds["default"]))
+    elif args.mode == "precision":
+        thr = float(thresholds.get("high_precision", thresholds["default"]))
+    else:
+        thr = float(thresholds["default"])
 
+    # Interpret
+    decision = "RAIN" if p >= thr else "No rain"
     ts = df["time"].iloc[-1]
+
     print(f"{ts}  |  P(rain ≤{meta['horizon_hours']}h)={p:.3f}  |  mode={args.mode} thr={thr:.2f}  →  {decision}")
 
 def main():

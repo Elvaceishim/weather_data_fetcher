@@ -105,6 +105,50 @@ It engineers both raw signals and short-term deltas/rolling means. Positive coef
 
 The classifier isn’t guessing; it’s surfacing familiar meteorological patterns.
 
+### What drives the rain predictions?
+
+Using SHAP explainability, I found that the model mainly relies on **humidity** and **temperature** when deciding if it will rain in the next 12 hours.
+
+- High humidity pushes the model strongly toward predicting rain.
+- Lower temperatures slightly increase rain probability.
+- The interaction between humidity and temperature mimics real-world weather dynamics — humid, cool conditions tend to precede rainfall.
+
+This means the model isn’t just memorizing data — it has captured meaningful relationships that align with atmospheric science.
+
+![Humidity vs Temperature SHAP interaction](results/shap_interaction.png)
+
+> Generated via `python scripts/explain_shap_interaction.py`, which also writes `results/shap_interaction_rev.png` for the reverse view.
+
+## 🌧️ Rain Events (≥1.0 mm in next 12h)
+
+**Label:** “Rain event if cumulative precipitation ≥ **1.0 mm** within the next **12 hours**.”  
+**Policy:** Default to **Early Warning** (recall-leaning) for Lagos conditions. Offer a stricter **Cautious Alert** mode.
+
+**Train / thresholds / predict**
+
+```bash
+# (data) pull 90 days of hourly data
+make hourly PAST_DAYS=90
+
+# (model) train XGBoost + Isotonic calibration
+python scripts/train_xgb_12h_calibrated.py
+
+# (CLI) two operating modes
+weather-cli rain --mode recall     # Early Warning (higher recall)
+weather-cli rain --mode precision  # Cautious Alert (stricter)
+weather-cli rain                   # Balanced (best F1)
+```
+
+### 🌧️ Rain Warning (next 12h)
+Train tuned model + set guarded thresholds:
+
+```bash
+python scripts/xgb_tune_timeseries.py
+python scripts/train_xgb_tuned_final.py
+cp models/rain_xgb_tuned.joblib    models/rain_classifier_hourly.joblib
+cp models/rain_xgb_tuned_meta.json models/rain_model_meta.json
+```
+
 ## Run Locally
 
 Clone and run:
