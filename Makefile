@@ -1,4 +1,7 @@
-.PHONY: all check download process zip clean coords
+
+.PHONY: all check download process zip clean coords plot setup viz cli \
+        install uninstall rain rain6 rain-train rain-predict rain-now eval-plots \
+        hourly
 
 all: check download process zip
 	@echo "🏁 Weather pipeline complete."
@@ -18,72 +21,60 @@ process:
 zip:
 	@zip -j results/results.zip results/summary.txt results/summary.csv
 
-
 clean:
 	@rm -rf data results logs
 	@mkdir -p data results logs
 
 coords:
-	@bash scripts/fetch_weather.sh $(LAT) $(LON)
+	@LAT="$(LAT)" LON="$(LON)" bash scripts/fetch_weather.sh
 	@python3 scripts/process_weather.py
 	@zip -j results/results.zip results/summary.txt
 
-.PHONY: plot
 plot:
 	@python3 scripts/plot_weather.py
 
-.PHONY: setup
+viz: all plot
+	@echo "📊 Charts generated."
+
 setup:
 	@python3 -m venv .venv
 	@. .venv/bin/activate && pip install -r requirements.txt
 
-.PHONY: viz
-viz: all plot
-	@echo "📊 Charts generated."
-
-.PHONY: cli
 cli:
 	@python3 scripts/weather_cli.py --city Lagos --lat 6.5244 --lon 3.3792
 
-.PHONY: install uninstall
 install:
 	@. .venv/bin/activate && pip install -e .
 
 uninstall:
 	@. .venv/bin/activate && pip uninstall -y weather-data-fetcher
 
-.PHONY: rain
 rain:
 	@python3 scripts/train_classify_rain.py
-
-.PHONY: hourly rain6
-hourly:
-	@PAST_DAYS=14 bash scripts/fetch_weather.sh && python3 scripts/export_hourly.py
 
 rain6:
 	@python3 scripts/train_classify_rain_hourly.py
 
-.PHONY: rain-train rain-predict
 rain-train:
 	@python3 scripts/train_rain_dual_thresholds.py
 
 rain-predict:
 	@python3 scripts/predict_rain.py
 
-.PHONY: rain-now
 rain-now:
-	@python3 scripts/rain_cli.py --mode recall
+	@weather-cli rain --mode recall
 
-.PHONY: eval-plots
 eval-plots:
 	@python3 scripts/plot_pr_roc.py
 
-.PHONY: rain-train rain-now hourly
 hourly:
-	@PAST_DAYS=14 bash scripts/fetch_weather.sh && python3 scripts/export_hourly.py
+	@LAT="$(LAT)" LON="$(LON)" PAST_DAYS="$(PAST_DAYS)" bash scripts/fetch_weather.sh
+	@python3 scripts/export_hourly.py
 
-rain-train:
-	@python3 scripts/train_rain_dual_thresholds.py
+.PHONY: xgb-train
+xgb-train:
+	@python3 scripts/train_xgb_12h.py
 
-rain-now:
-	@python3 -c "import sys,subprocess; subprocess.run(['weather-cli','rain','--mode','recall'])"
+.PHONY: xgb-train-cal
+xgb-train-cal:
+	@python3 scripts/train_xgb_12h_calibrated.py
