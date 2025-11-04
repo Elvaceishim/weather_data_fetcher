@@ -78,3 +78,17 @@ xgb-train:
 .PHONY: xgb-train-cal
 xgb-train-cal:
 	@python3 scripts/train_xgb_12h_calibrated.py
+
+.PHONY: predict-log backfill monitor
+predict-log:
+	@python3 scripts/log_predict.py --city "Lagos" --lat 6.5244 --lon 3.3792 --mode default
+
+backfill:
+	@python3 scripts/backfill_labels.py
+
+monitor:
+	@python3 scripts/monitor_weekly.py
+
+.PHONY: cron-test
+cron-test:
+	@./scripts/cron_predict.sh default "Lagos" 6.5244 3.3792 90 >> logs/cron.log 2>&1 && tail -n 5 logs/cron.log
