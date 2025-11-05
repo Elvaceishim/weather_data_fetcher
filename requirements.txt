@@ -28,3 +28,4 @@ uvicorn[standard]
 pydantic
 xgboost
 huggingface_hub
+streamlit
