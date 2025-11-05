@@ -27,3 +27,4 @@ fastapi
 uvicorn[standard]
 pydantic
 xgboost
+huggingface_hub
