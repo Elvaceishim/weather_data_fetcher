@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 COPY models ./models
-COPY results ./results
+RUN mkdir -p results
 COPY scripts ./scripts
 COPY Makefile README.md ./
 
