@@ -8,7 +8,10 @@ from huggingface_hub import hf_hub_download
 
 def main() -> None:
     repo_id = os.environ.get("MODEL_REPO_ID", "theelvace/weather-data-fetcher-models")
-    files_env = os.environ.get("MODEL_FILES", "rain_xgb_tuned.joblib")
+    files_env = os.environ.get(
+        "MODEL_FILES",
+        "rain_xgb_tuned.joblib rain_xgb_tuned_meta.json",
+    )
     target_dir = Path(os.environ.get("MODEL_DIR", "models"))
 
     target_dir.mkdir(parents=True, exist_ok=True)
