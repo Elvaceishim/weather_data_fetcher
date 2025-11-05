@@ -29,3 +29,5 @@ pydantic
 xgboost
 huggingface_hub
 streamlit
+streamlit
+streamlit
