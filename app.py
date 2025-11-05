@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 import numpy as np
-import pandas as pd
+import pandas as p
 import streamlit as st
 import joblib
 import subprocess

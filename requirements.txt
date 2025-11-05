@@ -23,3 +23,7 @@ threadpoolctl==3.6.0
 tzdata==2025.2
 urllib3==2.5.0
 -e git+https://github.com/Elvaceishim/weather_data_fetcher.git@ac53d9c31c4be6eda7988f97e1768f998c7a9f0a#egg=weather_data_fetcher
+fastapi
+uvicorn[standard]
+pydantic
+xgboost
