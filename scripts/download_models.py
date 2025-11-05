@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from huggingface_hub import hf_hub_download
+from huggingface_hub.errors import EntryNotFoundError
 
 
 def main() -> None:
@@ -23,12 +24,16 @@ def main() -> None:
 
     for filename in filenames:
         print(f"Downloading {filename} from {repo_id} ...")
-        local_path = hf_hub_download(
-            repo_id=repo_id,
-            filename=filename,
-            local_dir=target_dir,
-            local_dir_use_symlinks=False,
-        )
+        try:
+            local_path = hf_hub_download(
+                repo_id=repo_id,
+                filename=filename,
+                local_dir=target_dir,
+                local_dir_use_symlinks=False,
+            )
+        except EntryNotFoundError:
+            print(f" • Skipping {filename}: not found in {repo_id}.")
+            continue
         print(f"Saved to {local_path}")
 
 
