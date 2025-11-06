@@ -3,11 +3,12 @@ from pathlib import Path
 from datetime import datetime
 import os, json, subprocess
 
-import httpx
 import joblib
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, Query, Request
+import httpx
+from httpx import RequestError
+from fastapi import FastAPI, Query, Request, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
@@ -120,14 +121,17 @@ async def proxy_streamlit(full_path: str, request: Request):
     body = await request.body()
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
-        proxied_response = await client.request(
-            request.method,
-            target_url,
-            content=body if body else None,
-            headers=headers,
-            cookies=request.cookies,
-            timeout=30.0,
-        )
+        try:
+            proxied_response = await client.request(
+                request.method,
+                target_url,
+                content=body if body else None,
+                headers=headers,
+                cookies=request.cookies,
+                timeout=30.0,
+            )
+        except RequestError as exc:
+            raise HTTPException(status_code=502, detail=f"Streamlit backend unavailable: {exc}") from exc
 
     blocked_headers = {"content-encoding", "transfer-encoding", "connection", "content-length"}
     response_headers = {k: v for k, v in proxied_response.headers.items() if k.lower() not in blocked_headers}
