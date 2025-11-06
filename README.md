@@ -1,6 +1,11 @@
 ---
-title: Weather Data Fetcher API
+title: Weather Data Fetcher
+emoji: 🌧️
+colorFrom: blue
+colorTo: gray
 sdk: docker
+hub: registry.hf.space/theelvace/weather-data-fetcher-api:latest
+pinned: false
 ---
 
 # Weather Data Fetcher — Automated Data Pipeline

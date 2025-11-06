@@ -1,4 +1,5 @@
 
+import asyncio
 from pathlib import Path
 from datetime import datetime
 import os, json, subprocess
@@ -8,9 +9,10 @@ import numpy as np
 import pandas as pd
 import httpx
 from httpx import RequestError
-from fastapi import FastAPI, Query, Request, HTTPException
+from fastapi import FastAPI, Query, Request, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
+import websockets
 
 # --------- Paths ---------
 ROOT = Path(__file__).resolve().parents[1]
@@ -107,15 +109,100 @@ def predict_get(
     return {"ok": True, "result": out}
 
 
+def _target_authority(parsed: httpx.URL) -> str:
+    if parsed.port and not (
+        (parsed.scheme == "http" and parsed.port == 80) or
+        (parsed.scheme == "https" and parsed.port == 443)
+    ):
+        return f"{parsed.host}:{parsed.port}"
+    return parsed.host
+
+
+@app.websocket("/_stcore/stream")
+async def proxy_streamlit_ws(websocket: WebSocket):
+    base = httpx.URL(STREAMLIT_BASE)
+    ws_scheme = "wss" if base.scheme == "https" else "ws"
+    authority = _target_authority(base)
+    target_url = f"{ws_scheme}://{authority}{websocket.scope['path']}"
+
+    raw_query = websocket.scope.get("query_string", b"")
+    if raw_query:
+        target_url = f"{target_url}?{raw_query.decode()}"
+
+    extra_headers = []
+    for key, value in websocket.headers.items():
+        lk = key.lower()
+        if lk in {"host", "origin", "sec-websocket-protocol"}:
+            continue
+        extra_headers.append((key, value))
+    extra_headers.append(("Host", authority))
+    extra_headers.append(("Origin", f"{base.scheme}://{authority}"))
+
+    sub_header = websocket.headers.get("sec-websocket-protocol")
+    client_subprotocols = [proto.strip() for proto in sub_header.split(",")] if sub_header else []
+    preferred_subprotocol = client_subprotocols[0] if client_subprotocols else None
+
+    try:
+        async with websockets.connect(
+            target_url,
+            extra_headers=extra_headers,
+            subprotocols=client_subprotocols or None,
+        ) as upstream:
+            await websocket.accept(subprotocol=upstream.subprotocol or preferred_subprotocol)
+
+            async def client_to_upstream():
+                try:
+                    while True:
+                        message = await websocket.receive()
+                        if message.get("type") == "websocket.disconnect":
+                            await upstream.close()
+                            break
+                        text = message.get("text")
+                        if text is not None:
+                            await upstream.send(text)
+                        else:
+                            data = message.get("bytes")
+                            if data is not None:
+                                await upstream.send(data)
+                except WebSocketDisconnect:
+                    await upstream.close()
+
+            async def upstream_to_client():
+                try:
+                    async for payload in upstream:
+                        if isinstance(payload, bytes):
+                            await websocket.send_bytes(payload)
+                        else:
+                            await websocket.send_text(payload)
+                finally:
+                    await websocket.close()
+
+            tasks = [
+                asyncio.create_task(client_to_upstream()),
+                asyncio.create_task(upstream_to_client()),
+            ]
+            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            for task in pending:
+                task.cancel()
+    except Exception:
+        await websocket.close(code=1011)
+
+
 @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], include_in_schema=False)
 async def proxy_streamlit(full_path: str, request: Request):
     """Proxy remaining requests over to the colocated Streamlit server."""
     # Preserve the incoming path while defaulting to root.
     relative_path = f"/{full_path}" if full_path else "/"
-    target_url = str(httpx.URL(STREAMLIT_BASE).join(relative_path))
+    target = httpx.URL(STREAMLIT_BASE).join(relative_path)
+    target_url = str(target)
     query_items = tuple(request.query_params.multi_items())
 
-    headers = {k: v for k, v in request.headers.items() if k.lower() != "host"}
+    headers = dict(request.headers)
+    target_authority = _target_authority(target)
+    headers["host"] = target_authority
+    if "origin" in headers:
+        headers["origin"] = f"{target.scheme}://{target_authority}"
+
     body = await request.body()
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
