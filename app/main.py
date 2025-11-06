@@ -112,11 +112,8 @@ async def proxy_streamlit(full_path: str, request: Request):
     """Proxy remaining requests over to the colocated Streamlit server."""
     # Preserve the incoming path while defaulting to root.
     relative_path = f"/{full_path}" if full_path else "/"
-    target_url = httpx.URL(STREAMLIT_BASE).join(relative_path)
-
-    raw_query = request.scope.get("query_string", b"")
-    if raw_query:
-        target_url = target_url.copy_with(raw_query=raw_query)
+    target_url = str(httpx.URL(STREAMLIT_BASE).join(relative_path))
+    query_items = tuple(request.query_params.multi_items())
 
     headers = {k: v for k, v in request.headers.items() if k.lower() != "host"}
     body = await request.body()
@@ -126,6 +123,7 @@ async def proxy_streamlit(full_path: str, request: Request):
             proxied_response = await client.request(
                 request.method,
                 target_url,
+                params=query_items if query_items else None,
                 content=body if body else None,
                 headers=headers,
                 cookies=request.cookies,
