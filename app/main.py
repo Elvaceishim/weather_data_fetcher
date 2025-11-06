@@ -3,10 +3,12 @@ from pathlib import Path
 from datetime import datetime
 import os, json, subprocess
 
+import httpx
 import joblib
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Request
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 # --------- Paths ---------
@@ -18,6 +20,9 @@ SCRIPTS = ROOT / "scripts"
 MODEL_PATH = MODELS / "rain_xgb_tuned.joblib"
 META_PATH  = MODELS / "rain_xgb_tuned_meta.json"
 HOURLY_CSV = RESULTS / "hourly.csv"
+
+STREAMLIT_PORT = os.getenv("STREAMLIT_PORT", "8501")
+STREAMLIT_BASE = os.getenv("STREAMLIT_BASE", f"http://127.0.0.1:{STREAMLIT_PORT}")
 
 import sys
 sys.path.insert(0, str(ROOT))
@@ -99,3 +104,37 @@ def predict_get(
     df = ensure_hourly(lat, lon, past_days)
     out = predict_latest(df, mode)
     return {"ok": True, "result": out}
+
+
+@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], include_in_schema=False)
+async def proxy_streamlit(full_path: str, request: Request):
+    """Proxy remaining requests over to the colocated Streamlit server."""
+    # Preserve the incoming path while defaulting to root.
+    relative_path = f"/{full_path}" if full_path else "/"
+    target_url = httpx.URL(STREAMLIT_BASE).join(relative_path)
+
+    if request.url.query:
+        target_url = target_url.copy_with(query=request.url.query.encode("utf-8"))
+
+    headers = {k: v for k, v in request.headers.items() if k.lower() != "host"}
+    body = await request.body()
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        proxied_response = await client.request(
+            request.method,
+            target_url,
+            content=body if body else None,
+            headers=headers,
+            cookies=request.cookies,
+            timeout=30.0,
+        )
+
+    blocked_headers = {"content-encoding", "transfer-encoding", "connection", "content-length"}
+    response_headers = {k: v for k, v in proxied_response.headers.items() if k.lower() not in blocked_headers}
+
+    return Response(
+        content=proxied_response.content,
+        status_code=proxied_response.status_code,
+        headers=response_headers,
+        media_type=proxied_response.headers.get("content-type"),
+    )
