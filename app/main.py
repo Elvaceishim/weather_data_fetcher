@@ -116,7 +116,7 @@ async def proxy_streamlit(full_path: str, request: Request):
 
     if request.url.query:
         raw_query = request.scope.get("query_string", b"")
-        target_url = target_url.copy_with(query=raw_query)
+        target_url = target_url.copy_with(raw_query=raw_query)
 
     headers = {k: v for k, v in request.headers.items() if k.lower() != "host"}
     body = await request.body()
