@@ -5,6 +5,8 @@ STREAMLIT_PORT="${STREAMLIT_PORT:-${PORT:-7860}}"
 UVICORN_PORT="${UVICORN_PORT:-8000}"
 HOST="0.0.0.0"
 
+echo "Environment: FASTAPI_ROOT_PATH=${FASTAPI_ROOT_PATH:-<unset>} PORT=${PORT:-<unset>} STREAMLIT_PORT=${STREAMLIT_PORT:-<unset>} UVICORN_PORT=${UVICORN_PORT}"
+echo "Environment: FASTAPI_ROOT_PATH=${FASTAPI_ROOT_PATH:-<unset>} PORT=${PORT:-<unset>} STREAMLIT_PORT=${STREAMLIT_PORT:-<unset>} UVICORN_PORT=${UVICORN_PORT}"
 echo "🚀 Starting FastAPI (uvicorn) on port ${UVICORN_PORT}"
 python -m uvicorn app.main:app --host "${HOST}" --port "${UVICORN_PORT}" &
 UVICORN_PID=$!
