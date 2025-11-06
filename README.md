@@ -1,3 +1,8 @@
+---
+title: Weather Data Fetcher API
+sdk: docker
+---
+
 # Weather Data Fetcher — Automated Data Pipeline
 
 Fetch daily Lagos (or any city) weather data using **Open-Meteo API**, process it with **Python**, and automate the full workflow via **Bash + Makefile**.
