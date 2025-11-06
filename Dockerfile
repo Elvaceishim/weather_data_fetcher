@@ -17,6 +17,5 @@ COPY . .
 RUN mkdir -p results
 RUN python scripts/download_models.py
 
-EXPOSE 8000 7860
-
-CMD ["bash", "-lc", "python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 & streamlit run app.py --server.port 7860 --server.address 0.0.0.0"]
+EXPOSE 7860
+CMD ["bash", "scripts/start_services.sh"]
