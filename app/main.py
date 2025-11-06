@@ -115,7 +115,8 @@ async def proxy_streamlit(full_path: str, request: Request):
     target_url = httpx.URL(STREAMLIT_BASE).join(relative_path)
 
     if request.url.query:
-        target_url = target_url.copy_with(query=request.url.query.encode("utf-8"))
+        raw_query = request.scope.get("query_string", b"")
+        target_url = target_url.copy_with(query=raw_query)
 
     headers = {k: v for k, v in request.headers.items() if k.lower() != "host"}
     body = await request.body()
