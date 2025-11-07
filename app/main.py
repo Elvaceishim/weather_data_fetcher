@@ -1,8 +1,7 @@
 """
 FastAPI application exposing the rain nowcast API and a Gradio UI.
 
-The previous Streamlit proxy was difficult to keep alive on Spaces due to
-websocket restrictions.  This module provides the same REST endpoints while
+This module provides REST endpoints while
 mounting a lightweight Gradio front-end so the UI works without websocket
 tunnelling.
 """
@@ -21,7 +20,6 @@ import pandas as pd
 import gradio as gr
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
-from xgboost import XGBClassifier
 
 # --------- Paths ---------
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +29,6 @@ SCRIPTS = ROOT / "scripts"
 
 MODEL_PATH = MODELS / "rain_xgb_tuned.joblib"
 META_PATH = MODELS / "rain_xgb_tuned_meta.json"
-MODEL_JSON_PATH = MODELS / "xgb_tuned.json"
 HOURLY_CSV = RESULTS / "hourly.csv"
 
 # Make training utilities importable.
@@ -41,36 +38,17 @@ sys.path.insert(0, str(ROOT))
 from scripts.train_xgb_tuned_final import build_features  # type: ignore
 
 # --------- Load model + meta at startup ---------
-if not META_PATH.exists():
+if not MODEL_PATH.exists() or not META_PATH.exists():
     raise RuntimeError(
-        "Model metadata missing. Run `python scripts/train_xgb_tuned_final.py` "
-        "or copy models/rain_xgb_tuned_meta.json into place."
+        "Model artifacts missing. Ensure the training pipeline has been run "
+        "before starting the API (expected rain_xgb_tuned.joblib and meta JSON)."
     )
 
+model = joblib.load(MODEL_PATH)
 meta = json.loads(META_PATH.read_text())
 FEATURES = meta["features"]
 THRESH = meta["thresholds"]
 HORIZON_H = int(meta["horizon_hours"])
-
-
-def _load_model() -> XGBClassifier:
-    if MODEL_PATH.exists():
-        return joblib.load(MODEL_PATH)
-
-    if MODEL_JSON_PATH.exists():
-        params = meta.get("model", {}).get("params", {})
-        booster = XGBClassifier(**params)
-        booster.load_model(MODEL_JSON_PATH)
-        return booster
-
-    raise RuntimeError(
-        "Model artifact missing. Run `python scripts/train_xgb_tuned_final.py` "
-        "to generate models/rain_xgb_tuned.joblib (or xgb_tuned.json), "
-        "or copy the trained file into the models/ directory."
-    )
-
-
-model = _load_model()
 
 # --------- Helpers ---------
 def ensure_hourly(lat: float, lon: float, past_days: int = 90) -> pd.DataFrame:
@@ -221,10 +199,8 @@ def gradio_predict(
     summary = format_prediction(result)
 
     last48 = df.tail(48).copy()
-    chart = last48[["time", "temp_c", "humidity", "precip_mm", "rain_mm"]].copy()
-    chart = chart.melt(id_vars="time", var_name="series", value_name="value")
-    if pd.api.types.is_datetime64_any_dtype(chart["time"]):
-        chart["time"] = chart["time"].dt.strftime("%Y-%m-%d %H:%M")
+    last48.set_index("time", inplace=True)
+    chart = last48[["temp_c", "humidity", "precip_mm", "rain_mm"]]
 
     latest = pd.DataFrame(
         {
@@ -274,10 +250,9 @@ with gr.Blocks(css=".gradio-container {max-width: 900px;}") as demo:
     chart_df = gr.LinePlot(
         label="Last 48h weather (hourly)",
         x="time",
-        y="value",
-        color="series",
+        y=["temp_c", "humidity", "precip_mm", "rain_mm"],
         overlay_point=True,
-        width=900,
+        width="100%",
         height=350,
     )
 
@@ -294,3 +269,4 @@ with gr.Blocks(css=".gradio-container {max-width: 900px;}") as demo:
 
 
 app = gr.mount_gradio_app(app, demo, path="/")
+
