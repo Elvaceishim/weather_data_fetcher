@@ -221,8 +221,10 @@ def gradio_predict(
     summary = format_prediction(result)
 
     last48 = df.tail(48).copy()
-    last48.set_index("time", inplace=True)
-    chart = last48[["temp_c", "humidity", "precip_mm", "rain_mm"]]
+    chart = last48[["time", "temp_c", "humidity", "precip_mm", "rain_mm"]].copy()
+    chart = chart.melt(id_vars="time", var_name="series", value_name="value")
+    if pd.api.types.is_datetime64_any_dtype(chart["time"]):
+        chart["time"] = chart["time"].dt.strftime("%Y-%m-%d %H:%M")
 
     latest = pd.DataFrame(
         {
@@ -272,9 +274,10 @@ with gr.Blocks(css=".gradio-container {max-width: 900px;}") as demo:
     chart_df = gr.LinePlot(
         label="Last 48h weather (hourly)",
         x="time",
-        y=["temp_c", "humidity", "precip_mm", "rain_mm"],
+        y="value",
+        color="series",
         overlay_point=True,
-        width="100%",
+        width=900,
         height=350,
     )
 

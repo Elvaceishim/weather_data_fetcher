@@ -14,6 +14,17 @@ Fetch daily Lagos (or any city) weather data using **Open-Meteo API**, process i
 
 ---
 
+## Live Demo
+
+- **Gradio interface:** https://theelvace-weather-data-fetcher-api.hf.space/
+- **Health check:** https://theelvace-weather-data-fetcher-api.hf.space/health
+- **Prediction API:** https://theelvace-weather-data-fetcher-api.hf.space/predict  
+  (`GET` query params or `POST` JSON body mirroring the FastAPI schema)
+
+If you previously opened the old Streamlit URL, close those tabs to stop the `/_stcore/...` polling requests that may still appear in the logs.
+
+---
+
 ## Project Overview
 
 This project demonstrates a clean, reproducible workflow for data automation — the same principles used in ML and DevOps pipelines.
