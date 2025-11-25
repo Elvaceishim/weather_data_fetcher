@@ -30,3 +30,4 @@ xgboost
 huggingface_hub
 streamlit
 gradio
+gradio_client
