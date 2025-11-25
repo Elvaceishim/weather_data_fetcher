@@ -30,4 +30,4 @@ xgboost
 huggingface_hub
 streamlit
 gradio==3.50.2
-gradio_client
+gradio_client==0.7.1
