@@ -1,6 +1,5 @@
 ---
 title: Weather Data Fetcher
-emoji: 🌧️
 colorFrom: blue
 colorTo: gray
 sdk: docker
@@ -21,8 +20,6 @@ Fetch daily Lagos (or any city) weather data using **Open-Meteo API**, process i
 - **Prediction API:** https://theelvace-weather-data-fetcher-api.hf.space/predict  
   (`GET` query params or `POST` JSON body mirroring the FastAPI schema)
 
-If you previously opened the old Streamlit URL, close those tabs to stop the `/_stcore/...` polling requests that may still appear in the logs.
-
 ---
 
 ## Project Overview
@@ -40,7 +37,7 @@ This project demonstrates a clean, reproducible workflow for data automation —
 
 ## Charts
 
-## 🌧️ Rain Warning (next 6 hours)
+## Rain Warning (next 6 hours)
 
 Predict **whether it will rain in the next 6 hours** from hourly observations (temperature, humidity, pressure, wind, cloud cover, precipitation).
 
@@ -140,7 +137,7 @@ This means the model isn’t just memorizing data — it has captured meaningful
 
 > Generated via `python scripts/explain_shap_interaction.py`, which also writes `results/shap_interaction_rev.png` for the reverse view.
 
-## 🌧️ Rain Events (≥1.0 mm in next 12h)
+## Rain Events (≥1.0 mm in next 12h)
 
 **Label:** “Rain event if cumulative precipitation ≥ **1.0 mm** within the next **12 hours**.”  
 **Policy:** Default to **Early Warning** (recall-leaning) for Lagos conditions. Offer a stricter **Cautious Alert** mode.
@@ -160,7 +157,7 @@ weather-cli rain --mode precision  # Cautious Alert (stricter)
 weather-cli rain                   # Balanced (best F1)
 ```
 
-### 🌧️ Rain Warning (next 12h)
+### Rain Warning (next 12h)
 Train tuned model + set guarded thresholds:
 
 ```bash
